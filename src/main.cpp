@@ -1,5 +1,6 @@
 #include <iostream>
 #include <getopt.h>
+#include "../include/RecursiveGrep.h"
 
 int main(int argc, char*argv[]) {
     /* Default values of arguments */
@@ -45,7 +46,7 @@ int main(int argc, char*argv[]) {
 
     std::string pattern = argv[optind];
 
-    std::cout << pattern << " " << dir << " " << logFile << " " << resultFile << " " << nrOfThreads << std::endl;
-
+    RecursiveGrep rg(pattern, dir, logFile, resultFile, nrOfThreads);
+    std::cout << rg.toString();
     return 0;
 }
