@@ -5,6 +5,8 @@ OBJS := $(SRCS:.cpp=.o)
 
 TARGET = RecursiveGrep
 
+CXXFLAGS += -I/include
+
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
