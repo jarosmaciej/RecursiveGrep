@@ -4,12 +4,33 @@
 #include <fstream>
 
 #include "../include/RecursiveGrep.h"
+#include "../include/ThreadPool.h"
 
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 
 RecursiveGrep::RecursiveGrep(std::string pattern, std::string dir, std::string logFile, std::string resultFile, int nrOfThreads) : dir(dir), logFile(logFile), resultFile(resultFile), nrOfThreads(nrOfThreads), sumOfPatterns(0), searchedFiles(0), timeElapsed(0){
+
     auto start = std::chrono::steady_clock::now();
+    ThreadPool pool(nrOfThreads);
+    std::vector< std::future<int> > results;
+
+    /* example code, just to check if thread pool works */
+    for(int i = 0; i < 8; ++i) {
+        results.emplace_back(
+            pool.enqueue([i] {
+                std::cout << "hello " << i << std::endl;
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                std::cout << "world " << i << std::endl;
+                return i*i;
+            })
+        );
+    }
+
+    for(auto && result: results)
+        std::cout << result.get() << ' ';
+    std::cout << std::endl;
+
     auto end = std::chrono::steady_clock::now();
     timeElapsed = duration_cast<milliseconds>(end - start).count();
 }

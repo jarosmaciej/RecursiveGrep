@@ -6,11 +6,12 @@ OBJS := $(SRCS:.cpp=.o)
 TARGET = RecursiveGrep
 
 CXXFLAGS += -I/include
+LDFLAGS += -pthread
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CXX) -o $@ $^
+	$(CXX) -o $@ $^ $(LDFLAGS)
 
 %.o: %.cpp
 	$(CXX) -c -o $@ $<
