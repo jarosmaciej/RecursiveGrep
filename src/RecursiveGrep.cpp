@@ -4,6 +4,7 @@
 #include <fstream>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <algorithm>
 #include <stack>
 
 #include "../include/RecursiveGrep.h"
@@ -17,6 +18,14 @@ RecursiveGrep::RecursiveGrep(std::string pattern, std::string dir, std::string l
     auto start = std::chrono::steady_clock::now();
 
     searchFiles();
+
+    /* Sorts vector of files with pattern's info by number of patterns found */
+    std::sort(filesWithPattern.begin(), filesWithPattern.end(), 
+        [](const singleGrepInfo & a, const singleGrepInfo & b) -> bool { 
+        return a.lineCounter > b.lineCounter; 
+    });
+
+    createResultFile();
 
     auto end = std::chrono::steady_clock::now();
 
@@ -46,7 +55,7 @@ void RecursiveGrep::searchFiles() {
                 }
 
                 std::string subdir = path + "/" + dp->d_name;
-                if (is_dir(subdir)) {
+                if (isDir(subdir)) {
                     stack.push(subdir);
                 }
             } else if (dp->d_type == DT_REG) {
@@ -55,7 +64,10 @@ void RecursiveGrep::searchFiles() {
                     pool.enqueue([this, fileName] {
                         // TODO pushback to this table for logfile
                         ++searchedFiles;
-                        return grep(fileName);
+                        singleGrepInfo sgi = grep(fileName);
+                        if (sgi.lineCounter > 0)
+                            filesWithPattern.push_back(sgi);
+                        return sgi;
                     })
                 );
             }
@@ -73,10 +85,9 @@ singleGrepInfo RecursiveGrep::grep(const std::string& fileName) {
         std::string line;
         int lineNum = 1;
         while (std::getline(file, line)) {
-            if (line.find(pattern) != std::string::npos) {
+            if (line.find(pattern) != std::string::npos) {// TODO not thread safe?
                 ++stats.lineCounter;
                 ++sumOfPatterns;
-                std::cout << line << " " << fileName << std::endl << std::endl;// TODO delete
                 stats.linesWithPattern.push_back(std::pair<int, std::string>(lineNum, line));
             }
             lineNum++;
@@ -85,7 +96,7 @@ singleGrepInfo RecursiveGrep::grep(const std::string& fileName) {
     return stats;
 }
 
-bool RecursiveGrep::is_dir(const std::string& path) {
+bool RecursiveGrep::isDir(const std::string& path) {
     struct stat statbuf;
     if (stat(path.c_str(), &statbuf) != 0) {
         return false;
@@ -99,7 +110,15 @@ void RecursiveGrep::createLogFile() {
 
 
 void RecursiveGrep::createResultFile() {
-
+    std::ofstream outputFile(resultFile);
+    if (outputFile) {
+        for (const auto& it : filesWithPattern) {
+            for (const auto& line : it.linesWithPattern) {
+                outputFile << it.fileName << ":" << line.first << ": " << line.second << std::endl;
+            }
+        }
+        outputFile.close();
+    }
 }
 
 std::string RecursiveGrep::toString() {

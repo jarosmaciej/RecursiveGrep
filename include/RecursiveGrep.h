@@ -29,7 +29,7 @@ public:
 
     void searchFiles();    
     singleGrepInfo grep(const std::string&);
-    bool is_dir(const std::string&);
+    bool isDir(const std::string&);
     void createLogFile();
     void createResultFile();
     std::string toString();
