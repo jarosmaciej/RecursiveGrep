@@ -5,7 +5,7 @@ OBJS := $(SRCS:.cpp=.o)
 
 TARGET = RecursiveGrep
 
-CXXFLAGS += -I/include
+CXXFLAGS += -I/include -std=c++17
 LDFLAGS += -pthread
 
 all: $(TARGET)

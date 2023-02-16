@@ -4,7 +4,8 @@
 
 int main(int argc, char*argv[]) {
     /* Default values of arguments */
-    std::string dir = "./", logFile = argv[0], resultFile = argv[0];
+    std::string dir = ".";
+    std::string logFile = argv[0], resultFile = argv[0];
     int nrOfThreads = 4;
 
     static struct option longOpts[] = {
@@ -30,7 +31,8 @@ int main(int argc, char*argv[]) {
             nrOfThreads = atoi(optarg);
             if (nrOfThreads <= 0){
                 //help(); TODO
-                std::cerr << "Help" << std::endl;
+                std::cerr << "Number of threads should be a natural number" << std::endl;
+                return 1;
             }
         default:
             break;
@@ -46,7 +48,7 @@ int main(int argc, char*argv[]) {
 
     std::string pattern = argv[optind];
 
-    RecursiveGrep rg(pattern, dir, logFile, resultFile, nrOfThreads);
+    RecursiveGrep rg(pattern, dir, logFile + ".log", resultFile + ".txt", nrOfThreads);
     std::cout << rg.toString();
     return 0;
 }

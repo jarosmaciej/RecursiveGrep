@@ -7,8 +7,9 @@
 
 struct singleGrepInfo {
     std::string fileName;
-    std::thread::id threadId;
-    std::vector<std::pair<int, std::string>> linesWithPattern;
+    std::vector<std::pair<int, std::string>> linesWithPattern; // First pair's parameter is a line number, second - it's content
+    unsigned lineCounter; // with pattern
+    singleGrepInfo() : lineCounter(0){}
 };
 
 class RecursiveGrep {
@@ -26,10 +27,13 @@ class RecursiveGrep {
 public:
     RecursiveGrep(std::string, std::string, std::string, std::string, int nrOfThreads);
 
+    void searchFiles();    
+    singleGrepInfo grep(const std::string&);
+    bool is_dir(const std::string&);
     void createLogFile();
     void createResultFile();
     std::string toString();
-    singleGrepInfo grep(std::string, std::string);
+    
 };
 
 #endif
