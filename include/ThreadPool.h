@@ -90,11 +90,12 @@ auto ThreadPool::enqueue(F&& f, Args&&... args)
 }
 
 std::vector<std::thread::id> ThreadPool::getIds(){
-    std::vector<std::thread::id> threadIds(workers.size());
-    std::transform(workers.begin(), workers.end(), threadIds.begin(),
+    std::vector<std::thread::id> threadsIds(workers.size());
+    std::transform(workers.begin(), workers.end(), threadsIds.begin(),
         [](const std::thread& t) {
             return t.get_id();
         });
+    return threadsIds;
 }
 
 // the destructor joins all threads
