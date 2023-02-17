@@ -20,6 +20,7 @@ class RecursiveGrep {
     int nrOfThreads;
 
     std::vector<singleGrepInfo> filesWithPattern;
+    std::vector<std::pair<std::thread::id, std::vector<std::string>>>* threadsStats;
     int sumOfPatterns;
     int searchedFiles;
     double timeElapsed;
@@ -29,10 +30,13 @@ public:
 
     void searchFiles();    
     singleGrepInfo grep(const std::string&);
+    std::vector<std::pair<std::thread::id, std::vector<std::string>>> initThreadsStats(std::vector<std::thread::id> ids);
     bool isDir(const std::string&);
     void createLogFile();
     void createResultFile();
     std::string toString();
+
+    ~RecursiveGrep();
     
 };
 

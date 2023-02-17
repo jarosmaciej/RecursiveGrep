@@ -40,6 +40,8 @@ void RecursiveGrep::searchFiles() {
 
     std::vector<std::thread::id> ids = pool.getIds();
 
+    threadsStats = new std::vector<std::pair<std::thread::id, std::vector<std::string>>>(initThreadsStats(ids));
+
     while (!stack.empty()) {
         std::string path = stack.top();
         stack.pop();
@@ -81,6 +83,7 @@ void RecursiveGrep::searchFiles() {
 
 singleGrepInfo RecursiveGrep::grep(const std::string& fileName) {
     singleGrepInfo stats;
+    bool hasFile = false;
     stats.fileName = fileName;
     std::ifstream file(fileName);
     if (file) {
@@ -90,12 +93,26 @@ singleGrepInfo RecursiveGrep::grep(const std::string& fileName) {
             if (line.find(pattern) != std::string::npos) {// TODO not thread safe?
                 ++stats.lineCounter;
                 ++sumOfPatterns;
+                hasFile = true;
                 stats.linesWithPattern.push_back(std::pair<int, std::string>(lineNum, line));
             }
             lineNum++;
         }
     }
+    if (hasFile){
+        // TODO searching current thread id and push back filename (just name, not path)
+    }
     return stats;
+}
+
+std::vector<std::pair<std::thread::id, std::vector<std::string>>> RecursiveGrep::initThreadsStats(std::vector<std::thread::id> ids){
+    std::vector<std::pair<std::thread::id, std::vector<std::string>>> tStats(nrOfThreads);
+
+        std::transform(ids.begin(), ids.end(), tStats.begin(),
+            [](const std::thread::id& t) {
+                return std::make_pair(t, std::vector<std::string>());
+            });
+    return tStats;
 }
 
 bool RecursiveGrep::isDir(const std::string& path) {
@@ -133,4 +150,8 @@ std::string RecursiveGrep::toString() {
     stats << "Used threads: " << nrOfThreads << std::endl;
     stats << "Elapsed time (ms): " << timeElapsed << std::endl;
     return stats.str();
+}
+
+RecursiveGrep::~RecursiveGrep(){
+    delete threadsStats;
 }
