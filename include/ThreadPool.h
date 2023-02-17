@@ -22,6 +22,7 @@ public:
     template<class F, class... Args>
     auto enqueue(F&& f, Args&&... args) 
         -> std::future<typename std::result_of<F(Args...)>::type>;
+    std::vector<std::thread::id> getIds();
     ~ThreadPool();
 private:
     // need to keep track of threads so we can join them
@@ -86,6 +87,14 @@ auto ThreadPool::enqueue(F&& f, Args&&... args)
     }
     condition.notify_one();
     return res;
+}
+
+std::vector<std::thread::id> ThreadPool::getIds(){
+    std::vector<std::thread::id> threadIds(workers.size());
+    std::transform(workers.begin(), workers.end(), threadIds.begin(),
+        [](const std::thread& t) {
+            return t.get_id();
+        });
 }
 
 // the destructor joins all threads

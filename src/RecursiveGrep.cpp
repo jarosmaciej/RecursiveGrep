@@ -38,6 +38,8 @@ void RecursiveGrep::searchFiles() {
     std::stack<std::string> stack;
     stack.push(dir);
 
+    std::vector<std::thread::id> ids = pool.getIds();
+
     while (!stack.empty()) {
         std::string path = stack.top();
         stack.pop();
