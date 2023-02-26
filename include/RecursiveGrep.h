@@ -7,7 +7,7 @@
 #include <vector>
 #include <thread>
 #include <utility>
-#include <mutex>
+#include <atomic>
 
 struct singleGrepInfo {
     std::string fileName;
@@ -26,7 +26,7 @@ class RecursiveGrep {
 
     std::vector<singleGrepInfo> filesWithPattern;
     std::vector<std::pair<std::thread::id, std::vector<std::string>>>* threadsStats; // vector of thread ids and file with pattern names processed by this thread)
-    int sumOfPatterns;
+    std::atomic<int> sumOfPatterns;
     int searchedFiles;
     int timeElapsed;
 

@@ -104,15 +104,17 @@ singleGrepInfo RecursiveGrep::grep(const std::string& filePath) {
     if (file) {
         std::string line;
         int lineNum = 1;
+        int patternsInFile = 0;
         while (std::getline(file, line)) {
             if (line.find(pattern) != std::string::npos) {
                 ++stats.lineCounter;
-                ++sumOfPatterns; //not thread safe TODO
+                ++patternsInFile;
                 hasPattern = true;
                 stats.linesWithPattern.push_back(std::pair<int, std::string>(lineNum, line));
             }
             lineNum++;
         }
+        sumOfPatterns+=patternsInFile;
     }
     /* If file has pattern push it to current's thread (which processed this file) vector */
     if (hasPattern){
