@@ -2,9 +2,11 @@
 #include <chrono>
 #include <sstream>
 #include <fstream>
+#include <string.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <algorithm>
+#include <libgen.h>
 #include <stack>
 
 #include "../include/RecursiveGrep.h"
@@ -22,8 +24,8 @@ RecursiveGrep::RecursiveGrep(std::string pattern, std::string dir, std::string l
     /* Sorts vector of files with pattern's info by number of patterns found */
     std::sort(filesWithPattern.begin(), filesWithPattern.end(), 
         [](const singleGrepInfo & a, const singleGrepInfo & b) -> bool { 
-        return a.lineCounter > b.lineCounter; 
-    });
+            return a.lineCounter > b.lineCounter; 
+        });
 
     createResultFile();
 
@@ -63,12 +65,12 @@ void RecursiveGrep::searchFiles() {
                     stack.push(subdir);
                 }
             } else if (dp->d_type == DT_REG) {
-                std::string fileName = path + "/" + dp->d_name;
+                std::string filePath = path + "/" + dp->d_name;
                 results.emplace_back(
-                    pool.enqueue([this, fileName] {
+                    pool.enqueue([this, filePath] {
                         // TODO pushback to this table for logfile
                         ++searchedFiles;
-                        singleGrepInfo sgi = grep(fileName);
+                        singleGrepInfo sgi = grep(filePath);
                         if (sgi.lineCounter > 0)
                             filesWithPattern.push_back(sgi);
                         return sgi;
@@ -77,15 +79,20 @@ void RecursiveGrep::searchFiles() {
             }
         }
 
-        closedir(directory);    
+        closedir(directory);
     }
 }
 
-singleGrepInfo RecursiveGrep::grep(const std::string& fileName) {
+singleGrepInfo RecursiveGrep::grep(const std::string& filePath) {
     singleGrepInfo stats;
     bool hasFile = false;
-    stats.fileName = fileName;
-    std::ifstream file(fileName);
+    char* baseName = strdup(filePath.c_str());
+    char* absPath = realpath(filePath.c_str(), NULL);    
+    stats.fileName = basename(baseName);
+    stats.absolutePath = absPath;
+    free(baseName);
+    free(absPath);
+    std::ifstream file(filePath);
     if (file) {
         std::string line;
         int lineNum = 1;
@@ -100,7 +107,12 @@ singleGrepInfo RecursiveGrep::grep(const std::string& fileName) {
         }
     }
     if (hasFile){
-        // TODO searching current thread id and push back filename (just name, not path)
+        auto currentThreadId = std::this_thread::get_id();
+        auto it = std::find_if(threadsStats->begin(), threadsStats->end(),
+            [currentThreadId](const auto& pair){
+                return pair.first == currentThreadId;
+            });
+        it->second.push_back(stats.fileName);
     }
     return stats;
 }
@@ -133,7 +145,7 @@ void RecursiveGrep::createResultFile() {
     if (outputFile) {
         for (const auto& it : filesWithPattern) {
             for (const auto& line : it.linesWithPattern) {
-                outputFile << it.fileName << ":" << line.first << ": " << line.second << std::endl;
+                outputFile << it.absolutePath << ":" << line.first << ": " << line.second << std::endl;
             }
         }
         outputFile.close();

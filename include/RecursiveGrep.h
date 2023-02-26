@@ -7,6 +7,7 @@
 
 struct singleGrepInfo {
     std::string fileName;
+    std::string absolutePath;
     std::vector<std::pair<int, std::string>> linesWithPattern; // First pair's parameter is a line number, second - it's content
     unsigned lineCounter; // with pattern
     singleGrepInfo() : lineCounter(0){}
