@@ -29,6 +29,13 @@ RecursiveGrep::RecursiveGrep(std::string pattern, std::string dir, std::string l
 
     createResultFile();
 
+    std::sort(threadsStats->begin(), threadsStats->end(),
+        [](const auto& a, const auto& b) {
+            return a.second.size() > b.second.size();
+        });
+
+    createLogFile();
+
     auto end = std::chrono::steady_clock::now();
 
     timeElapsed = duration_cast<milliseconds>(end - start).count();
@@ -136,7 +143,22 @@ bool RecursiveGrep::isDir(const std::string& path) {
 }
 
 void RecursiveGrep::createLogFile() {
-
+    std::ofstream outputFile(logFile);
+    if (outputFile) {
+        for (auto& threadStats : *threadsStats) {
+            outputFile << threadStats.first << ":";
+            bool isFirstFile = true;
+            for (const auto& fileName : threadStats.second) {
+                if (!isFirstFile) {
+                    outputFile << ", ";
+                }
+                outputFile << fileName;
+                isFirstFile = false;
+            }
+            outputFile << std::endl;
+        }
+        outputFile.close();
+    }
 }
 
 
