@@ -1,9 +1,13 @@
 #ifndef RECURSIVEGREP_H
 #define RECURSIVEGREP_H
 
+#include <iostream>
+#include <string.h>
+#include <libgen.h>
 #include <vector>
 #include <thread>
 #include <utility>
+#include <mutex>
 
 struct singleGrepInfo {
     std::string fileName;
@@ -21,10 +25,10 @@ class RecursiveGrep {
     int nrOfThreads;
 
     std::vector<singleGrepInfo> filesWithPattern;
-    std::vector<std::pair<std::thread::id, std::vector<std::string>>>* threadsStats;
+    std::vector<std::pair<std::thread::id, std::vector<std::string>>>* threadsStats; // vector of thread ids and file with pattern names processed by this thread)
     int sumOfPatterns;
     int searchedFiles;
-    double timeElapsed;
+    int timeElapsed;
 
 public:
     RecursiveGrep(std::string, std::string, std::string, std::string, int nrOfThreads);

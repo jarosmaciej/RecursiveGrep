@@ -1,11 +1,24 @@
-#include <iostream>
 #include <getopt.h>
+
 #include "../include/RecursiveGrep.h"
+
+void help(std::string programName){
+    std::cerr << "Usage: " << programName << " <pattern> [-d|--dir <start_dir>] [-l|--log_file <log_file_name>]" << std::endl
+              << "                              [-r|--result_file <result_file_name>] [-t|--threads <num_threads>]" << std::endl << std::endl
+              << "Parameters:" << std::endl
+              << "  <pattern>          Required. A string to search for in the files." << std::endl
+              << "  -d, --dir          The starting directory where the program looks for files (including subfolders)." << std::endl
+              << "                     Default value: current directory." << std::endl
+              << "  -l, --log_file     The name of the log file. The default name is \"<program_name>.log\"." << std::endl
+              << "  -r, --result_file  The name of the file where the search results are saved. The default name is \"<program_name>.txt\"." << std::endl
+              << "  -t, --threads      The number of threads in the thread pool. The default value is 4." << std::endl;
+}
 
 int main(int argc, char*argv[]) {
     /* Default values of arguments */
     std::string dir = ".";
-    std::string logFile = argv[0], resultFile = argv[0];
+    std::string programName = basename(argv[0]);
+    std::string logFile = programName, resultFile = programName;
     int nrOfThreads = 4;
 
     static struct option longOpts[] = {
@@ -29,9 +42,9 @@ int main(int argc, char*argv[]) {
             break;
         case 't':
             nrOfThreads = atoi(optarg);
+            /* Checks if nr of threads is a natural number */
             if (nrOfThreads <= 0){
-                //help(); TODO
-                std::cerr << "Number of threads should be a natural number" << std::endl;
+                help(argv[0]);
                 return 1;
             }
         default:
@@ -41,8 +54,7 @@ int main(int argc, char*argv[]) {
 
     /* If there's inavlid number of arguments shows informations how to use program and returns 1 */
     if (argc - optind != 1) {
-        //help(); TODO
-        std::cerr << "Help" << std::endl;
+        help(argv[0]);
         return 1;
     }
 
